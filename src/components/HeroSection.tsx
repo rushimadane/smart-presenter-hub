@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const HeroSection = () => {
   return (
@@ -18,9 +19,11 @@ const HeroSection = () => {
               Just type your content and our AI does the rest.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-lg group">
-                Start creating for free
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-lg group" asChild>
+                <Link to="/start-creating">
+                  Start creating for free
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
               </Button>
               <Button size="lg" variant="outline" className="text-lg">
                 Watch demo
