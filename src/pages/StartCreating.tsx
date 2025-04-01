@@ -5,10 +5,21 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wand2, ArrowRight, LayoutGrid, Sparkles } from 'lucide-react';
+import { Wand2, ArrowRight, LayoutGrid, Sparkles, Key, Eye, EyeOff } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const apiKeySchema = z.object({
+  apiKey: z.string().min(1, 'API Key is required')
+});
+
+type ApiKeyFormValues = z.infer<typeof apiKeySchema>;
 
 const StartCreating = () => {
   const [step, setStep] = useState<number>(1);
@@ -16,6 +27,34 @@ const StartCreating = () => {
   const [presentationContent, setPresentationContent] = useState<string>('');
   const [agreeToTerms, setAgreeToTerms] = useState<boolean>(false);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [apiKey, setApiKey] = useState<string>('');
+  const [showApiKey, setShowApiKey] = useState<boolean>(false);
+  const [sheetOpen, setSheetOpen] = useState<boolean>(false);
+
+  const apiKeyForm = useForm<ApiKeyFormValues>({
+    resolver: zodResolver(apiKeySchema),
+    defaultValues: {
+      apiKey: '',
+    },
+  });
+
+  const handleSaveApiKey = (values: ApiKeyFormValues) => {
+    setApiKey(values.apiKey);
+    localStorage.setItem('presentation_ai_key', values.apiKey);
+    toast({
+      title: "API Key saved",
+      description: "Your API key has been saved successfully",
+    });
+    setSheetOpen(false);
+  };
+
+  // Check for saved API key on component mount
+  React.useEffect(() => {
+    const savedApiKey = localStorage.getItem('presentation_ai_key');
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+    }
+  }, []);
 
   const handleStartCreating = () => {
     if (!presentationTitle.trim()) {
@@ -45,10 +84,47 @@ const StartCreating = () => {
       return;
     }
 
+    if (!apiKey) {
+      toast({
+        title: "API Key required",
+        description: "Please add your API key to generate presentations",
+        variant: "destructive",
+      });
+      setSheetOpen(true);
+      return;
+    }
+
     setIsGenerating(true);
     
-    // Simulate AI processing
+    // Simulate AI processing with the API key
     setTimeout(() => {
+      console.log(`Using API key: ${apiKey.substring(0, 4)}...${apiKey.substring(apiKey.length - 4)} to generate presentation`);
+      
+      // In a real implementation, this would make an API call to generate the presentation
+      // fetch('https://api.presentationai.example/generate', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Authorization': `Bearer ${apiKey}`,
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({
+      //     title: presentationTitle,
+      //     content: presentationContent,
+      //   }),
+      // }).then(response => response.json())
+      //   .then(data => {
+      //     setIsGenerating(false);
+      //     setStep(2);
+      //   })
+      //   .catch(error => {
+      //     setIsGenerating(false);
+      //     toast({
+      //       title: "Error generating presentation",
+      //       description: error.message,
+      //       variant: "destructive",
+      //     });
+      //   });
+      
       setIsGenerating(false);
       setStep(2);
       toast({
@@ -70,6 +146,64 @@ const StartCreating = () => {
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Just give us your content, and our AI will transform it into a stunning presentation in seconds.
             </p>
+          </div>
+          
+          <div className="flex justify-end mb-4">
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+              <SheetTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                >
+                  <Key className="h-4 w-4" />
+                  {apiKey ? "Update API Key" : "Add API Key"}
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>API Key Configuration</SheetTitle>
+                  <SheetDescription>
+                    Add your API key to enable AI-powered presentation generation.
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="py-6">
+                  <Form {...apiKeyForm}>
+                    <form onSubmit={apiKeyForm.handleSubmit(handleSaveApiKey)} className="space-y-6">
+                      <FormField
+                        control={apiKeyForm.control}
+                        name="apiKey"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>API Key</FormLabel>
+                            <div className="relative">
+                              <FormControl>
+                                <Input 
+                                  placeholder="Enter your API key" 
+                                  type={showApiKey ? "text" : "password"} 
+                                  {...field} 
+                                  defaultValue={apiKey}
+                                />
+                              </FormControl>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-0 top-0 h-full px-3"
+                                onClick={() => setShowApiKey(!showApiKey)}
+                              >
+                                {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </Button>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit" className="w-full">Save API Key</Button>
+                    </form>
+                  </Form>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
           
           {step === 1 ? (
