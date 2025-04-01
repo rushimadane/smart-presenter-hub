@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Wand2, Clock, LayoutGrid, Image, Present, Shapes, Globe, Layers } from 'lucide-react';
+import { Wand2, Clock, LayoutGrid, Image, Gift, Shapes, Globe, Layers } from 'lucide-react';
 
 const features = [
   {
@@ -24,7 +24,7 @@ const features = [
     description: 'AI finds and suggests relevant, high-quality images to illustrate your points.'
   },
   {
-    icon: <Present className="h-8 w-8 text-primary" />,
+    icon: <Gift className="h-8 w-8 text-primary" />,
     title: 'Presentation Mode',
     description: 'Present directly from your browser with notes, timer, and audience engagement tools.'
   },
