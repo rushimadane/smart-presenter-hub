@@ -2,22 +2,32 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Download, Edit, Plus, Image } from 'lucide-react';
-import { Presentation } from '@/services/presentationService';
+import { ChevronLeft, ChevronRight, Download, Edit, Plus, Image, Save } from 'lucide-react';
+import { Presentation, SlideContent } from '@/services/presentationService';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from '@/components/ui/use-toast';
 
 interface PresentationViewProps {
   presentation: Presentation;
   onEdit?: () => void;
   onCreateNew?: () => void;
+  onSave?: (presentation: Presentation) => void;
 }
 
 const PresentationView: React.FC<PresentationViewProps> = ({
   presentation,
   onEdit,
-  onCreateNew
+  onCreateNew,
+  onSave
 }) => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const currentSlide = presentation.slides[currentSlideIndex];
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedPresentation, setEditedPresentation] = useState<Presentation>({...presentation});
+  
+  const currentSlide = isEditing 
+    ? editedPresentation.slides[currentSlideIndex] 
+    : presentation.slides[currentSlideIndex];
   
   const goToPreviousSlide = () => {
     setCurrentSlideIndex(prev => (prev > 0 ? prev - 1 : prev));
@@ -30,13 +40,43 @@ const PresentationView: React.FC<PresentationViewProps> = ({
   const handleDownload = () => {
     // In a real app, this would generate a downloadable file
     // For now, we'll just create a JSON representation
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(presentation));
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(isEditing ? editedPresentation : presentation));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", `${presentation.title.replace(/\s+/g, '_')}.json`);
+    downloadAnchorNode.setAttribute("download", `${(isEditing ? editedPresentation : presentation).title.replace(/\s+/g, '_')}.json`);
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
+  };
+
+  const handleEditToggle = () => {
+    if (isEditing) {
+      // Save changes
+      if (onSave) {
+        onSave(editedPresentation);
+        toast({
+          title: "Changes saved",
+          description: "Your presentation has been updated successfully",
+        });
+      }
+    } else {
+      // Start editing
+      setEditedPresentation({...presentation});
+    }
+    setIsEditing(!isEditing);
+  };
+
+  const updateSlideContent = (field: keyof SlideContent, value: string) => {
+    const updatedSlides = [...editedPresentation.slides];
+    updatedSlides[currentSlideIndex] = {
+      ...updatedSlides[currentSlideIndex],
+      [field]: value
+    };
+    
+    setEditedPresentation({
+      ...editedPresentation,
+      slides: updatedSlides
+    });
   };
 
   // Create inline style based on slide styling
@@ -65,7 +105,15 @@ const PresentationView: React.FC<PresentationViewProps> = ({
     <Card className="shadow-lg border-gray-200">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>{presentation.title}</span>
+          {isEditing ? (
+            <Input 
+              value={editedPresentation.title} 
+              onChange={(e) => setEditedPresentation({...editedPresentation, title: e.target.value})}
+              className="font-bold"
+            />
+          ) : (
+            <span>{presentation.title}</span>
+          )}
           <div className="text-sm text-gray-500">
             {currentSlideIndex + 1} / {presentation.slides.length}
           </div>
@@ -88,12 +136,30 @@ const PresentationView: React.FC<PresentationViewProps> = ({
           )}
           
           <div className="relative z-10 text-center w-full">
-            <h3 className="text-2xl font-bold mb-4 px-4">{currentSlide.title}</h3>
-            <div className="whitespace-pre-line">
-              {currentSlide.content.split('\n').map((line, i) => (
-                <p key={i} className="my-2">{line}</p>
-              ))}
-            </div>
+            {isEditing ? (
+              <>
+                <Input 
+                  value={currentSlide.title}
+                  onChange={(e) => updateSlideContent('title', e.target.value)}
+                  className="text-xl font-bold mb-4 bg-transparent border-dashed"
+                />
+                <Textarea
+                  value={currentSlide.content}
+                  onChange={(e) => updateSlideContent('content', e.target.value)}
+                  className="min-h-[100px] bg-transparent border-dashed"
+                />
+              </>
+            ) : (
+              <>
+                <h3 className="text-2xl font-bold mb-4 px-4">{currentSlide.title}</h3>
+                <div className="whitespace-pre-line">
+                  {currentSlide.content.split('\n').map((line, i) => (
+                    <p key={i} className="my-2">{line}</p>
+                  ))}
+                </div>
+              </>
+            )}
+            
             {currentSlide.imageUrl && currentSlideIndex === 0 && (
               <div className="mt-6 flex justify-center">
                 <Button variant="outline" size="sm" className="flex items-center gap-1 opacity-70">
@@ -138,16 +204,23 @@ const PresentationView: React.FC<PresentationViewProps> = ({
         </div>
       </CardContent>
       <CardFooter className="flex gap-4">
-        {onEdit && (
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={onEdit}
-          >
-            <Edit className="h-4 w-4 mr-2" />
-            Edit
-          </Button>
-        )}
+        <Button
+          variant={isEditing ? "default" : "outline"}
+          className="flex-1"
+          onClick={handleEditToggle}
+        >
+          {isEditing ? (
+            <>
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </>
+          ) : (
+            <>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </>
+          )}
+        </Button>
         
         <Button
           className="flex-1"

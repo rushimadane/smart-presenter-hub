@@ -24,7 +24,16 @@ export const PresentationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, []);
 
   const addPresentation = (presentation: Presentation) => {
-    setPresentations(prev => [...prev, presentation]);
+    setPresentations(prev => {
+      // Check if presentation already exists
+      const exists = prev.some(p => p.id === presentation.id);
+      if (exists) {
+        // Update existing presentation
+        return prev.map(p => p.id === presentation.id ? presentation : p);
+      }
+      // Add new presentation
+      return [...prev, presentation];
+    });
     setCurrentPresentation(presentation);
     savePresentation(presentation);
   };

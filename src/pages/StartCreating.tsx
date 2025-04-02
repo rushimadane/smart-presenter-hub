@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wand2, ArrowRight, Key, Eye, EyeOff, Sparkles, LayoutTemplate } from 'lucide-react';
+import { Wand2, ArrowRight, Key, Eye, EyeOff, Sparkles } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -13,10 +14,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { generatePresentation, PresentationRequest } from '@/services/presentationService';
+import { generatePresentation, PresentationRequest, savePresentation } from '@/services/presentationService';
 import { usePresentations } from '@/contexts/PresentationContext';
 import PresentationView from '@/components/PresentationView';
-import { Link } from 'react-router-dom';
 
 const apiKeySchema = z.object({
   apiKey: z.string().min(1, 'API Key is required')
@@ -34,7 +34,7 @@ const StartCreating = () => {
   const [showApiKey, setShowApiKey] = useState<boolean>(false);
   const [sheetOpen, setSheetOpen] = useState<boolean>(false);
 
-  const { currentPresentation, addPresentation } = usePresentations();
+  const { currentPresentation, addPresentation, setCurrentPresentation } = usePresentations();
   
   const apiKeyForm = useForm<ApiKeyFormValues>({
     resolver: zodResolver(apiKeySchema),
@@ -133,6 +133,15 @@ const StartCreating = () => {
     setAgreeToTerms(false);
     setStep(1);
   };
+  
+  const handleSavePresentation = (updatedPresentation) => {
+    savePresentation(updatedPresentation);
+    setCurrentPresentation(updatedPresentation);
+    toast({
+      title: "Presentation updated",
+      description: "Your presentation has been saved successfully",
+    });
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -141,24 +150,14 @@ const StartCreating = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h1 className="text-3xl md:text-4xl font-bold mb-4">
-              Start Creating Your <span className="gradient-text">AI-Powered</span> Presentation
+              Create Your <span className="gradient-text">AI-Powered</span> Presentation
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Just give us your content, and our AI will transform it into a stunning presentation in seconds.
+              Tell us about your topic, and our AI will create a professional presentation with visuals in seconds.
             </p>
           </div>
           
-          <div className="flex justify-between mb-4">
-            <Link to="/templates">
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-2"
-              >
-                <LayoutTemplate className="h-4 w-4" />
-                Browse Templates
-              </Button>
-            </Link>
-            
+          <div className="flex justify-end mb-4">
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
               <SheetTrigger asChild>
                 <Button 
@@ -221,10 +220,10 @@ const StartCreating = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Wand2 className="h-5 w-5 text-primary" />
-                  Create a New Presentation
+                  Tell Us About Your Presentation
                 </CardTitle>
                 <CardDescription>
-                  Enter your presentation details and our AI will generate slides for you.
+                  Provide information about your topic, and our AI will generate a tailored presentation.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -242,15 +241,18 @@ const StartCreating = () => {
                 
                 <div className="space-y-2">
                   <label htmlFor="content" className="text-sm font-medium">
-                    Presentation Content
+                    Tell us about your topic
                   </label>
                   <Textarea
                     id="content"
-                    placeholder="Enter your presentation content. You can use bullet points, paragraphs, or any format you prefer."
+                    placeholder="Share everything you know about your topic. Include key points, facts, important concepts, or anything else you want in your presentation."
                     value={presentationContent}
                     onChange={(e) => setPresentationContent(e.target.value)}
                     className="min-h-[200px]"
                   />
+                  <p className="text-sm text-gray-500 mt-1">
+                    The more information you provide, the better your presentation will be.
+                  </p>
                 </div>
                 
                 <div className="flex items-center space-x-2">
@@ -276,11 +278,11 @@ const StartCreating = () => {
                   {isGenerating ? (
                     <>
                       <Sparkles className="mr-2 h-5 w-5 animate-pulse" />
-                      Generating your presentation...
+                      Creating your AI presentation...
                     </>
                   ) : (
                     <>
-                      Create Presentation
+                      Generate Presentation
                       <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}
@@ -292,49 +294,44 @@ const StartCreating = () => {
               <PresentationView 
                 presentation={currentPresentation}
                 onCreateNew={handleCreateNew}
+                onSave={handleSavePresentation}
               />
             )
           )}
           
           <div className="mt-12 text-center">
-            <h2 className="text-2xl font-bold mb-6">Ready to explore more features?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <h2 className="text-2xl font-bold mb-4">How Our AI Builds Your Presentation</h2>
+            <p className="text-gray-600 mb-8">
+              We analyze your topic information, extract key concepts, add relevant images, 
+              and create visually appealing slides with perfect formatting.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
               <Card>
                 <CardHeader>
-                  <CardTitle>Templates</CardTitle>
+                  <CardTitle>Smart Analysis</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>Browse our library of professional templates for any occasion.</p>
+                  <p>Our AI analyzes your content to identify key points and concepts, creating a logical presentation structure.</p>
                 </CardContent>
-                <CardFooter>
-                  <Button variant="outline" className="w-full" asChild>
-                    <Link to="/templates">Explore Templates</Link>
-                  </Button>
-                </CardFooter>
               </Card>
               
               <Card>
                 <CardHeader>
-                  <CardTitle>Collaboration</CardTitle>
+                  <CardTitle>Visual Enhancement</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>Invite team members to edit and view your presentations.</p>
+                  <p>Automatically adds relevant images and visual elements to make your presentation more engaging.</p>
                 </CardContent>
-                <CardFooter>
-                  <Button variant="outline" className="w-full">Start Collaborating</Button>
-                </CardFooter>
               </Card>
               
               <Card>
                 <CardHeader>
-                  <CardTitle>Premium Features</CardTitle>
+                  <CardTitle>Professional Design</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>Unlock advanced features with our premium plans.</p>
+                  <p>Applies professional design principles and formatting to create a polished, cohesive presentation.</p>
                 </CardContent>
-                <CardFooter>
-                  <Button variant="outline" className="w-full">View Plans</Button>
-                </CardFooter>
               </Card>
             </div>
           </div>

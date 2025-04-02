@@ -1,5 +1,6 @@
 
 import { toast } from "@/components/ui/use-toast";
+import { extractKeywords } from "@/utils/textUtils";
 
 export interface PresentationRequest {
   title: string;
@@ -72,37 +73,37 @@ const slideStyles = [
     backgroundColor: "#ffffff",
     textColor: "#333333",
     fontSize: "normal",
-    alignment: "left"
+    alignment: 'left' as const
   },
   {
     gradient: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
     textColor: "#2d3748",
     fontSize: "large",
-    alignment: "center"
+    alignment: 'center' as const
   },
   {
     gradient: "linear-gradient(to right, #4facfe 0%, #00f2fe 100%)",
     textColor: "#ffffff",
     fontSize: "normal",
-    alignment: "left"
+    alignment: 'left' as const
   },
   {
     backgroundColor: "#2d3748",
     textColor: "#f7fafc",
     fontSize: "normal",
-    alignment: "center"
+    alignment: 'center' as const
   },
   {
     gradient: "linear-gradient(to top, #a8edea 0%, #fed6e3 100%)",
     textColor: "#4a5568",
     fontSize: "large",
-    alignment: "left"
+    alignment: 'left' as const
   },
   {
     gradient: "linear-gradient(to right, #d4fc79 0%, #96e6a1 100%)",
     textColor: "#2d3748",
     fontSize: "normal",
-    alignment: "center"
+    alignment: 'center' as const
   },
 ];
 
@@ -134,6 +135,29 @@ const getRelevantImageUrl = (slideContent: string, slideIndex: number, topic: st
   return topicImagesArray[imageIndex];
 };
 
+// Function to convert paragraphs to bullet points
+const formatContentAsBulletPoints = (content: string): string => {
+  if (!content.includes('\n') && content.length > 60) {
+    // If it's a long paragraph, break it into bullet points
+    return content
+      .split(/[.!?]/)
+      .filter(sentence => sentence.trim().length > 0)
+      .map(sentence => `• ${sentence.trim()}`)
+      .join('\n');
+  }
+  
+  // If it already has line breaks, add bullets to each line
+  if (content.includes('\n')) {
+    return content
+      .split('\n')
+      .filter(line => line.trim().length > 0)
+      .map(line => line.startsWith('•') ? line : `• ${line.trim()}`)
+      .join('\n');
+  }
+  
+  return content;
+};
+
 // Simulate API call to generate presentation
 export const generatePresentation = async (request: PresentationRequest): Promise<Presentation> => {
   console.log("Generating presentation with API key:", `${request.apiKey.substring(0, 4)}...${request.apiKey.substring(request.apiKey.length - 4)}`);
@@ -141,25 +165,10 @@ export const generatePresentation = async (request: PresentationRequest): Promis
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 2000));
   
-  // In a real implementation, this would be an actual API call to a service like OpenAI
-  // return fetch('https://api.example.com/presentations', {
-  //   method: 'POST',
-  //   headers: {
-  //     'Authorization': `Bearer ${request.apiKey}`,
-  //     'Content-Type': 'application/json',
-  //   },
-  //   body: JSON.stringify({
-  //     title: request.title,
-  //     content: request.content,
-  //   }),
-  // }).then(response => {
-  //   if (!response.ok) {
-  //     throw new Error('Failed to generate presentation');
-  //   }
-  //   return response.json();
-  // });
-
-  // For demo purposes, extract keywords from content
+  // Extract keywords and key phrases from the content
+  const keywords = extractKeywords(request.content, 20);
+  
+  // For demo purposes, extract detailed content from input
   const contentLines = request.content
     .split(/[.\n]/)
     .filter(line => line.trim().length > 0)
@@ -174,45 +183,61 @@ export const generatePresentation = async (request: PresentationRequest): Promis
   // Title slide
   mockSlides.push({
     title: request.title,
-    content: "Created with AI",
+    content: "AI-Powered Presentation",
     imageUrl: getRelevantImageUrl(request.title, 0, topic),
     style: slideStyles[0]
   });
   
-  // Content slides
-  const maxSlides = Math.min(contentLines.length, 6);
-  for (let i = 0; i < maxSlides; i++) {
-    const line = contentLines[i];
-    const words = line.split(' ');
+  // Introduction slide
+  if (contentLines.length > 0) {
+    mockSlides.push({
+      title: "Overview",
+      content: formatContentAsBulletPoints(keywords.slice(0, 5).join('\n')),
+      imageUrl: getRelevantImageUrl("introduction " + topic, 1, topic),
+      style: slideStyles[1]
+    });
+  }
+  
+  // Content slides - Create more focused slides based on the content
+  const keyGroups = [];
+  for (let i = 0; i < keywords.length; i += 3) {
+    keyGroups.push(keywords.slice(i, i + 3));
+  }
+  
+  // Create slides from keyword groups
+  keyGroups.slice(0, 4).forEach((group, index) => {
+    if (group.length === 0) return;
     
-    // Extract key terms for the title (first 3-5 words if available)
-    const titleWordCount = Math.min(words.length, words.length < 8 ? 3 : 5);
-    const slideTitle = words.slice(0, titleWordCount).join(' ');
+    // Create a title from the first keyword or key phrase
+    const slideTitle = group[0].charAt(0).toUpperCase() + group[0].slice(1);
     
-    // Use the full line as content or generate bullet points
-    let slideContent = line;
-    if (line.length > 50) {
-      // Create bullet points from longer content
-      slideContent = line
-        .split(/[,;]/)
-        .filter(point => point.trim().length > 0)
-        .map(point => `• ${point.trim()}`)
-        .join('\n');
+    // Create content from the related content lines or keywords
+    let slideContent = group.join('\n');
+    
+    // Find relevant content from the original text
+    const relevantContentLines = contentLines.filter(line => 
+      group.some(keyword => line.toLowerCase().includes(keyword.toLowerCase()))
+    );
+    
+    if (relevantContentLines.length > 0) {
+      slideContent = formatContentAsBulletPoints(relevantContentLines.join('\n'));
+    } else {
+      slideContent = formatContentAsBulletPoints(slideContent);
     }
     
     mockSlides.push({
       title: slideTitle,
       content: slideContent,
-      imageUrl: getRelevantImageUrl(line, i + 1, topic),
-      style: slideStyles[(i + 1) % slideStyles.length]
+      imageUrl: getRelevantImageUrl(slideTitle, index + 2, topic),
+      style: slideStyles[(index + 2) % slideStyles.length]
     });
-  }
+  });
   
   // Conclusion slide
   mockSlides.push({
-    title: "Thank You",
-    content: `Key takeaways from ${request.title}`,
-    imageUrl: getRelevantImageUrl("conclusion", mockSlides.length, topic),
+    title: "Key Takeaways",
+    content: formatContentAsBulletPoints(keywords.slice(0, 4).map(k => k.charAt(0).toUpperCase() + k.slice(1)).join('\n')),
+    imageUrl: getRelevantImageUrl("conclusion " + topic, mockSlides.length, topic),
     style: slideStyles[mockSlides.length % slideStyles.length]
   });
 
@@ -239,7 +264,15 @@ export const getSavedPresentations = (): Presentation[] => {
 export const savePresentation = (presentation: Presentation): void => {
   try {
     const presentations = getSavedPresentations();
-    presentations.push(presentation);
+    // If the presentation already exists, update it
+    const existingIndex = presentations.findIndex(p => p.id === presentation.id);
+    
+    if (existingIndex >= 0) {
+      presentations[existingIndex] = presentation;
+    } else {
+      presentations.push(presentation);
+    }
+    
     localStorage.setItem('saved_presentations', JSON.stringify(presentations));
   } catch (error) {
     console.error("Error saving presentation:", error);
