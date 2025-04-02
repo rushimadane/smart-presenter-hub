@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wand2, ArrowRight, Key, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Wand2, ArrowRight, Key, Eye, EyeOff, Sparkles, LayoutTemplate } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -17,6 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { generatePresentation, PresentationRequest } from '@/services/presentationService';
 import { usePresentations } from '@/contexts/PresentationContext';
 import PresentationView from '@/components/PresentationView';
+import { Link } from 'react-router-dom';
 
 const apiKeySchema = z.object({
   apiKey: z.string().min(1, 'API Key is required')
@@ -53,7 +53,6 @@ const StartCreating = () => {
     setSheetOpen(false);
   };
 
-  // Check for saved API key on component mount
   useEffect(() => {
     const savedApiKey = localStorage.getItem('presentation_ai_key');
     if (savedApiKey) {
@@ -149,7 +148,17 @@ const StartCreating = () => {
             </p>
           </div>
           
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-between mb-4">
+            <Link to="/templates">
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+              >
+                <LayoutTemplate className="h-4 w-4" />
+                Browse Templates
+              </Button>
+            </Link>
+            
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
               <SheetTrigger asChild>
                 <Button 
@@ -298,7 +307,9 @@ const StartCreating = () => {
                   <p>Browse our library of professional templates for any occasion.</p>
                 </CardContent>
                 <CardFooter>
-                  <Button variant="outline" className="w-full">Explore Templates</Button>
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link to="/templates">Explore Templates</Link>
+                  </Button>
                 </CardFooter>
               </Card>
               

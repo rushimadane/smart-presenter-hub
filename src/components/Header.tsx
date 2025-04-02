@@ -27,6 +27,9 @@ const Header = () => {
             <a href="/#how-it-works" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">
               How It Works
             </a>
+            <Link to="/templates" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">
+              Templates
+            </Link>
             <a href="/#pricing" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">
               Pricing
             </a>
@@ -78,6 +81,13 @@ const Header = () => {
             >
               How It Works
             </a>
+            <Link
+              to="/templates"
+              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Templates
+            </Link>
             <a
               href="/#pricing"
               className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50"
