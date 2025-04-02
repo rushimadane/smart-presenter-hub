@@ -1,180 +1,151 @@
 
 import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Layout, LayoutTemplate, FileText, FileImage, FileCode } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Presentation, SlideContent } from '@/services/presentationService';
+import { usePresentations } from '@/contexts/PresentationContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { usePresentations } from '@/contexts/PresentationContext';
-import { toast } from '@/components/ui/use-toast';
-
-interface Template {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  thumbnailSrc: string;
-  slides: any[];
-}
+import { useNavigate } from 'react-router-dom';
+import { Search, Tag, Clock, ThumbsUp, Star, Filter } from 'lucide-react';
 
 const Templates = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const navigate = useNavigate();
   const { addPresentation } = usePresentations();
+  const navigate = useNavigate();
 
-  // Define template categories
+  // Template categories
   const categories = [
-    { id: 'all', name: 'All Templates' },
-    { id: 'business', name: 'Business' },
-    { id: 'education', name: 'Education' },
-    { id: 'creative', name: 'Creative' },
-    { id: 'portfolio', name: 'Portfolio' }
+    'All',
+    'Business',
+    'Education',
+    'Marketing',
+    'Design',
+    'Science',
+    'Creative'
   ];
 
-  // Mock template data
-  const templates: Template[] = [
+  // Template data
+  const templates = [
     {
-      id: 'business-pitch',
-      title: 'Business Pitch Deck',
-      description: 'Perfect template for startup pitches and business proposals',
-      category: 'business',
-      thumbnailSrc: '/placeholder.svg',
+      id: 'template-1',
+      title: 'Business Proposal',
+      category: 'Business',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
+      popularity: 4.8,
       slides: [
-        { title: 'Business Pitch', content: 'Your compelling pitch goes here' },
-        { title: 'Problem Statement', content: 'Describe the problem you\'re solving' },
-        { title: 'Solution', content: 'Your innovative solution' },
-        { title: 'Market Analysis', content: 'Market size and opportunity' },
-        { title: 'Business Model', content: 'How you make money' }
+        { 
+          title: 'Executive Summary', 
+          content: 'Overview of the business proposal',
+          imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80'
+        },
+        { 
+          title: 'Market Analysis', 
+          content: 'Analysis of the target market and competition',
+          imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80'
+        },
+        { 
+          title: 'Financial Projections', 
+          content: 'Overview of expected costs and revenues',
+          imageUrl: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80'
+        },
       ]
     },
     {
-      id: 'educational-presentation',
-      title: 'Educational Presentation',
-      description: 'Ideal for lectures, courses, and educational content',
-      category: 'education',
-      thumbnailSrc: '/placeholder.svg',
+      id: 'template-2',
+      title: 'Course Lecture',
+      category: 'Education',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80',
+      popularity: 4.5,
       slides: [
-        { title: 'Course Introduction', content: 'Introduction to this educational content' },
-        { title: 'Learning Objectives', content: 'What students will learn' },
-        { title: 'Key Concepts', content: 'Important concepts to understand' },
-        { title: 'Examples', content: 'Practical examples' },
-        { title: 'Summary', content: 'Review of key points' }
+        { 
+          title: 'Introduction', 
+          content: 'Course overview and objectives',
+          imageUrl: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80'
+        },
+        { 
+          title: 'Key Concepts', 
+          content: 'The fundamental concepts covered in this lecture',
+          imageUrl: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?auto=format&fit=crop&w=800&q=80'
+        },
+        { 
+          title: 'Practical Applications', 
+          content: 'Real-world applications of the concepts',
+          imageUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80'
+        },
       ]
     },
     {
-      id: 'creative-portfolio',
-      title: 'Creative Portfolio',
-      description: 'Showcase your creative work with this stylish template',
-      category: 'creative',
-      thumbnailSrc: '/placeholder.svg',
+      id: 'template-3',
+      title: 'Marketing Campaign',
+      category: 'Marketing',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80',
+      popularity: 4.7,
       slides: [
-        { title: 'About Me', content: 'Your creative background' },
-        { title: 'Portfolio Highlights', content: 'Your best work' },
-        { title: 'Process', content: 'Your creative process' },
-        { title: 'Client Work', content: 'Projects for clients' },
-        { title: 'Contact', content: 'How to reach you' }
+        { 
+          title: 'Campaign Overview', 
+          content: 'Marketing campaign goals and strategy',
+          imageUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80'
+        },
+        { 
+          title: 'Target Audience', 
+          content: 'Detailed description of the target demographic',
+          imageUrl: 'https://images.unsplash.com/photo-1552581234-26160f608093?auto=format&fit=crop&w=800&q=80'
+        },
+        { 
+          title: 'Performance Metrics', 
+          content: 'KPIs and success measures for the campaign',
+          imageUrl: 'https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?auto=format&fit=crop&w=800&q=80'
+        },
       ]
     },
     {
-      id: 'project-proposal',
-      title: 'Project Proposal',
-      description: 'Professional template for project proposals',
-      category: 'business',
-      thumbnailSrc: '/placeholder.svg',
+      id: 'template-4',
+      title: 'Product Design',
+      category: 'Design',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?auto=format&fit=crop&w=800&q=80',
+      popularity: 4.6,
       slides: [
-        { title: 'Project Overview', content: 'Brief description of the project' },
-        { title: 'Objectives', content: 'What this project aims to achieve' },
-        { title: 'Timeline', content: 'Project milestones and deadlines' },
-        { title: 'Budget', content: 'Financial details' },
-        { title: 'Team', content: 'Who will be working on this' }
+        { 
+          title: 'Design Brief', 
+          content: 'Overview of the product design challenge',
+          imageUrl: 'https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?auto=format&fit=crop&w=800&q=80'
+        },
+        { 
+          title: 'User Research', 
+          content: 'Insights from user interviews and testing',
+          imageUrl: 'https://images.unsplash.com/photo-1576153192396-180ecef2a715?auto=format&fit=crop&w=800&q=80'
+        },
+        { 
+          title: 'Final Concept', 
+          content: 'Presentation of the final design solution',
+          imageUrl: 'https://images.unsplash.com/photo-1508144753681-9986d4df99b3?auto=format&fit=crop&w=800&q=80'
+        },
       ]
     },
-    {
-      id: 'personal-portfolio',
-      title: 'Personal Portfolio',
-      description: 'Showcase your skills and experience with this professional template',
-      category: 'portfolio',
-      thumbnailSrc: '/placeholder.svg',
-      slides: [
-        { title: 'Introduction', content: 'Brief personal introduction' },
-        { title: 'Skills', content: 'Your key skills and competencies' },
-        { title: 'Experience', content: 'Your work history' },
-        { title: 'Projects', content: 'Notable projects you\'ve completed' },
-        { title: 'Contact Information', content: 'How to get in touch with you' }
-      ]
-    },
-    {
-      id: 'course-syllabus',
-      title: 'Course Syllabus',
-      description: 'Structured template for course outlines and syllabi',
-      category: 'education',
-      thumbnailSrc: '/placeholder.svg',
-      slides: [
-        { title: 'Course Information', content: 'Basic course details' },
-        { title: 'Weekly Schedule', content: 'Week-by-week course content' },
-        { title: 'Required Materials', content: 'Books, software, etc.' },
-        { title: 'Assessment Methods', content: 'How students will be graded' },
-        { title: 'Course Policies', content: 'Attendance, late work, etc.' }
-      ]
-    }
   ];
 
-  // Filter templates based on search query and selected category
-  const filterTemplates = (category: string) => {
-    let filtered = templates;
-    
-    if (searchQuery) {
-      filtered = filtered.filter(template => 
-        template.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        template.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    
-    if (category !== 'all') {
-      filtered = filtered.filter(template => template.category === category);
-    }
-    
-    return filtered;
-  };
+  const [activeCategory, setActiveCategory] = useState('All');
+  
+  const filteredTemplates = templates.filter((template) => {
+    const matchesCategory = activeCategory === 'All' || template.category === activeCategory;
+    const matchesSearch = template.title.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
-  const handleUseTemplate = (template: Template) => {
-    // Create a new presentation based on the template
-    const newPresentation = {
-      id: `template-${Date.now()}`,
-      title: `${template.title} Copy`,
-      slides: template.slides,
-      dateCreated: new Date().toISOString()
+  const handleUseTemplate = (template) => {
+    // Convert template to a Presentation format
+    const presentation: Presentation = {
+      id: template.id,
+      title: template.title,
+      createdAt: new Date().toISOString(),
+      slides: template.slides as SlideContent[],
     };
     
-    // Add the new presentation to the context
-    addPresentation(newPresentation);
-    
-    toast({
-      title: "Template applied",
-      description: `${template.title} has been applied to a new presentation.`
-    });
-    
-    // Navigate to start-creating page
-    navigate("/start-creating");
-  };
-
-  // Function to get the appropriate icon based on category
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'business':
-        return <FileText className="h-5 w-5 text-blue-500" />;
-      case 'education':
-        return <FileImage className="h-5 w-5 text-green-500" />;
-      case 'creative':
-        return <Layout className="h-5 w-5 text-purple-500" />;
-      case 'portfolio':
-        return <FileCode className="h-5 w-5 text-orange-500" />;
-      default:
-        return <LayoutTemplate className="h-5 w-5 text-gray-500" />;
-    }
+    addPresentation(presentation);
+    navigate('/start-creating');
   };
 
   return (
@@ -184,80 +155,82 @@ const Templates = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h1 className="text-3xl md:text-4xl font-bold mb-4">
-              Explore Our <span className="gradient-text">Presentation Templates</span>
+              Explore <span className="gradient-text">Presentation Templates</span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Choose from our professionally designed templates to create your next presentation quickly.
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Browse our professionally designed templates and customize them with AI to create stunning presentations in minutes.
             </p>
           </div>
           
-          <div className="mb-8">
-            <Input
-              type="search"
-              placeholder="Search templates..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="max-w-md mx-auto"
-            />
+          <div className="mb-8 flex flex-col md:flex-row gap-4 md:items-center justify-between">
+            <div className="relative w-full md:w-96">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <Input
+                placeholder="Search templates..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Filter className="text-gray-500" size={18} />
+              <span className="text-sm font-medium text-gray-700">Filter by:</span>
+              <Tabs defaultValue="All" value={activeCategory} onValueChange={setActiveCategory} className="w-fit">
+                <TabsList className="grid grid-flow-col auto-cols-max gap-1">
+                  {categories.map((category) => (
+                    <TabsTrigger key={category} value={category} className="px-3 py-1.5 text-xs">
+                      {category}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            </div>
           </div>
           
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="flex justify-center mb-8">
-              {categories.map((category) => (
-                <TabsTrigger key={category.id} value={category.id}>
-                  {category.name}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            
-            {categories.map((category) => (
-              <TabsContent key={category.id} value={category.id} className="mt-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filterTemplates(category.id).map((template) => (
-                    <Card key={template.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                      <div className="aspect-video bg-muted relative">
-                        <img
-                          src={template.thumbnailSrc}
-                          alt={template.title}
-                          className="object-cover w-full h-full"
-                        />
-                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-full p-1.5">
-                          {getCategoryIcon(template.category)}
-                        </div>
-                      </div>
-                      <CardHeader>
-                        <CardTitle>{template.title}</CardTitle>
-                        <CardDescription>{template.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                          {template.slides.length} slides
-                        </p>
-                      </CardContent>
-                      <CardFooter>
-                        <Button
-                          onClick={() => handleUseTemplate(template)}
-                          className="w-full"
-                        >
-                          Use This Template
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredTemplates.map((template) => (
+              <Card key={template.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <div className="aspect-video overflow-hidden">
+                  <img
+                    src={template.thumbnailUrl}
+                    alt={template.title}
+                    className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
+                  />
                 </div>
-                
-                {filterTemplates(category.id).length === 0 && (
-                  <div className="text-center py-12">
-                    <LayoutTemplate className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-xl font-medium">No templates found</h3>
-                    <p className="text-gray-500">
-                      Try adjusting your search or browse all templates
-                    </p>
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle>{template.title}</CardTitle>
+                      <CardDescription className="flex items-center mt-1">
+                        <Tag className="h-3.5 w-3.5 mr-1" />
+                        {template.category}
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center text-amber-500">
+                      <Star className="h-4 w-4 fill-current" />
+                      <span className="text-sm ml-1">{template.popularity}</span>
+                    </div>
                   </div>
-                )}
-              </TabsContent>
+                </CardHeader>
+                <CardContent className="pb-2">
+                  <p className="text-sm text-gray-600">{template.slides.length} slides</p>
+                </CardContent>
+                <CardFooter>
+                  <Button onClick={() => handleUseTemplate(template)} className="w-full">
+                    Use Template
+                  </Button>
+                </CardFooter>
+              </Card>
             ))}
-          </Tabs>
+          </div>
+          
+          {filteredTemplates.length === 0 && (
+            <div className="text-center py-12">
+              <h3 className="text-xl font-medium text-gray-700 mb-2">No templates found</h3>
+              <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+            </div>
+          )}
         </div>
       </main>
       <Footer />
