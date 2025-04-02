@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/use-toast";
 import { extractKeywords } from "@/utils/textUtils";
 
@@ -6,6 +5,7 @@ export interface PresentationRequest {
   title: string;
   content: string;
   apiKey: string;
+  slideBySlide?: boolean;
 }
 
 export interface SlideContent {
@@ -158,6 +158,57 @@ const formatContentAsBulletPoints = (content: string): string => {
   return content;
 };
 
+// Parse slide-by-slide content from user input
+const parseSlideBySlideContent = (content: string): SlideContent[] => {
+  const slideRegex = /Slide\s+(\d+):\s+(.+?)(?:\n|$)([\s\S]*?)(?=Slide\s+\d+:|$)/gi;
+  const slides: SlideContent[] = [];
+  let match;
+
+  while ((match = slideRegex.exec(content)) !== null) {
+    const slideNumber = parseInt(match[1]);
+    const slideTitle = match[2].trim();
+    let slideContent = match[3].trim();
+    
+    // Format the content as bullet points if needed
+    if (slideContent.includes('•') || slideContent.includes('-')) {
+      // Already has bullets, just clean up
+      slideContent = slideContent.replace(/^[-•]\s*/gm, '• ');
+    } else {
+      // Convert lines to bullet points
+      slideContent = slideContent
+        .split('\n')
+        .filter(line => line.trim().length > 0)
+        .map(line => `• ${line.trim()}`)
+        .join('\n');
+    }
+    
+    slides.push({
+      title: slideTitle,
+      content: slideContent
+    });
+  }
+  
+  return slides;
+};
+
+// Enhance slide content with AI
+const enhanceSlideContent = (slide: SlideContent, topic: string, slideIndex: number): SlideContent => {
+  // Enrich the slide content with more details
+  const keywords = extractKeywords(slide.content, 5);
+  
+  // Add relevant image
+  const imageUrl = getRelevantImageUrl(slide.title + " " + keywords.join(" "), slideIndex, topic);
+  
+  // Apply a style based on the slide position
+  const style = slideStyles[slideIndex % slideStyles.length];
+  
+  return {
+    ...slide,
+    imageUrl,
+    style
+  };
+};
+
 // Simulate API call to generate presentation
 export const generatePresentation = async (request: PresentationRequest): Promise<Presentation> => {
   console.log("Generating presentation with API key:", `${request.apiKey.substring(0, 4)}...${request.apiKey.substring(request.apiKey.length - 4)}`);
@@ -165,87 +216,95 @@ export const generatePresentation = async (request: PresentationRequest): Promis
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 2000));
   
-  // Extract keywords and key phrases from the content
-  const keywords = extractKeywords(request.content, 20);
-  
-  // For demo purposes, extract detailed content from input
-  const contentLines = request.content
-    .split(/[.\n]/)
-    .filter(line => line.trim().length > 0)
-    .map(line => line.trim());
-  
-  // Determine the overall topic for consistent image theming
+  let slides: SlideContent[] = [];
   const topic = determineTopicFromContent(request.content);
   
-  // Generate slides based on content
-  const mockSlides: SlideContent[] = [];
-  
-  // Title slide
-  mockSlides.push({
-    title: request.title,
-    content: "AI-Powered Presentation",
-    imageUrl: getRelevantImageUrl(request.title, 0, topic),
-    style: slideStyles[0]
-  });
-  
-  // Introduction slide
-  if (contentLines.length > 0) {
-    mockSlides.push({
-      title: "Overview",
-      content: formatContentAsBulletPoints(keywords.slice(0, 5).join('\n')),
-      imageUrl: getRelevantImageUrl("introduction " + topic, 1, topic),
-      style: slideStyles[1]
+  if (request.slideBySlide) {
+    // Parse slide-by-slide content
+    const parsedSlides = parseSlideBySlideContent(request.content);
+    
+    // Enhance each slide with AI-generated content and images
+    slides = parsedSlides.map((slide, index) => enhanceSlideContent(slide, topic, index));
+  } else {
+    // Extract keywords and key phrases from the content for regular content generation
+    const keywords = extractKeywords(request.content, 20);
+    
+    // For demo purposes, extract detailed content from input
+    const contentLines = request.content
+      .split(/[.\n]/)
+      .filter(line => line.trim().length > 0)
+      .map(line => line.trim());
+    
+    // Generate slides based on content
+    // ... keep existing code (mockSlides generation for regular presentations)
+    
+    // Title slide
+    slides.push({
+      title: request.title,
+      content: "AI-Powered Presentation",
+      imageUrl: getRelevantImageUrl(request.title, 0, topic),
+      style: slideStyles[0]
     });
-  }
-  
-  // Content slides - Create more focused slides based on the content
-  const keyGroups = [];
-  for (let i = 0; i < keywords.length; i += 3) {
-    keyGroups.push(keywords.slice(i, i + 3));
-  }
-  
-  // Create slides from keyword groups
-  keyGroups.slice(0, 4).forEach((group, index) => {
-    if (group.length === 0) return;
     
-    // Create a title from the first keyword or key phrase
-    const slideTitle = group[0].charAt(0).toUpperCase() + group[0].slice(1);
-    
-    // Create content from the related content lines or keywords
-    let slideContent = group.join('\n');
-    
-    // Find relevant content from the original text
-    const relevantContentLines = contentLines.filter(line => 
-      group.some(keyword => line.toLowerCase().includes(keyword.toLowerCase()))
-    );
-    
-    if (relevantContentLines.length > 0) {
-      slideContent = formatContentAsBulletPoints(relevantContentLines.join('\n'));
-    } else {
-      slideContent = formatContentAsBulletPoints(slideContent);
+    // Introduction slide
+    if (contentLines.length > 0) {
+      slides.push({
+        title: "Overview",
+        content: formatContentAsBulletPoints(keywords.slice(0, 5).join('\n')),
+        imageUrl: getRelevantImageUrl("introduction " + topic, 1, topic),
+        style: slideStyles[1]
+      });
     }
     
-    mockSlides.push({
-      title: slideTitle,
-      content: slideContent,
-      imageUrl: getRelevantImageUrl(slideTitle, index + 2, topic),
-      style: slideStyles[(index + 2) % slideStyles.length]
+    // Content slides - Create more focused slides based on the content
+    const keyGroups = [];
+    for (let i = 0; i < keywords.length; i += 3) {
+      keyGroups.push(keywords.slice(i, i + 3));
+    }
+    
+    // Create slides from keyword groups
+    keyGroups.slice(0, 4).forEach((group, index) => {
+      if (group.length === 0) return;
+      
+      // Create a title from the first keyword or key phrase
+      const slideTitle = group[0].charAt(0).toUpperCase() + group[0].slice(1);
+      
+      // Create content from the related content lines or keywords
+      let slideContent = group.join('\n');
+      
+      // Find relevant content from the original text
+      const relevantContentLines = contentLines.filter(line => 
+        group.some(keyword => line.toLowerCase().includes(keyword.toLowerCase()))
+      );
+      
+      if (relevantContentLines.length > 0) {
+        slideContent = formatContentAsBulletPoints(relevantContentLines.join('\n'));
+      } else {
+        slideContent = formatContentAsBulletPoints(slideContent);
+      }
+      
+      slides.push({
+        title: slideTitle,
+        content: slideContent,
+        imageUrl: getRelevantImageUrl(slideTitle, index + 2, topic),
+        style: slideStyles[(index + 2) % slideStyles.length]
+      });
     });
-  });
-  
-  // Conclusion slide
-  mockSlides.push({
-    title: "Key Takeaways",
-    content: formatContentAsBulletPoints(keywords.slice(0, 4).map(k => k.charAt(0).toUpperCase() + k.slice(1)).join('\n')),
-    imageUrl: getRelevantImageUrl("conclusion " + topic, mockSlides.length, topic),
-    style: slideStyles[mockSlides.length % slideStyles.length]
-  });
+    
+    // Conclusion slide
+    slides.push({
+      title: "Key Takeaways",
+      content: formatContentAsBulletPoints(keywords.slice(0, 4).map(k => k.charAt(0).toUpperCase() + k.slice(1)).join('\n')),
+      imageUrl: getRelevantImageUrl("conclusion " + topic, slides.length, topic),
+      style: slideStyles[slides.length % slideStyles.length]
+    });
+  }
 
   return {
     id: generateRandomId(),
     title: request.title,
     createdAt: new Date().toISOString(),
-    slides: mockSlides,
+    slides: slides,
   };
 };
 

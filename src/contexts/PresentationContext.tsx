@@ -1,12 +1,14 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Presentation, getSavedPresentations, savePresentation } from '@/services/presentationService';
+import { toast } from '@/components/ui/use-toast';
 
 interface PresentationContextType {
   presentations: Presentation[];
   currentPresentation: Presentation | null;
   setCurrentPresentation: (presentation: Presentation | null) => void;
   addPresentation: (presentation: Presentation) => void;
+  deletePresentation: (id: string) => void;
   loading: boolean;
 }
 
@@ -19,8 +21,19 @@ export const PresentationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   // Load saved presentations on mount
   useEffect(() => {
-    setPresentations(getSavedPresentations());
-    setLoading(false);
+    try {
+      const savedPresentations = getSavedPresentations();
+      setPresentations(savedPresentations);
+    } catch (error) {
+      console.error('Error loading presentations:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load saved presentations',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const addPresentation = (presentation: Presentation) => {
@@ -38,6 +51,32 @@ export const PresentationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     savePresentation(presentation);
   };
 
+  const deletePresentation = (id: string) => {
+    setPresentations(prev => prev.filter(p => p.id !== id));
+    
+    if (currentPresentation?.id === id) {
+      setCurrentPresentation(null);
+    }
+    
+    // Remove from local storage
+    try {
+      const savedPresentations = getSavedPresentations().filter(p => p.id !== id);
+      localStorage.setItem('saved_presentations', JSON.stringify(savedPresentations));
+      
+      toast({
+        title: 'Presentation deleted',
+        description: 'Your presentation has been deleted successfully',
+      });
+    } catch (error) {
+      console.error('Error deleting presentation:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete presentation',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <PresentationContext.Provider
       value={{
@@ -45,6 +84,7 @@ export const PresentationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         currentPresentation,
         setCurrentPresentation,
         addPresentation,
+        deletePresentation,
         loading
       }}
     >

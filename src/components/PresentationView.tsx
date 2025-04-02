@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Download, Edit, Plus, Image, Save } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Edit, Plus, Image, Save, Presentation } from 'lucide-react';
 import { Presentation, SlideContent } from '@/services/presentationService';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -105,15 +105,18 @@ const PresentationView: React.FC<PresentationViewProps> = ({
     <Card className="shadow-lg border-gray-200">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          {isEditing ? (
-            <Input 
-              value={editedPresentation.title} 
-              onChange={(e) => setEditedPresentation({...editedPresentation, title: e.target.value})}
-              className="font-bold"
-            />
-          ) : (
-            <span>{presentation.title}</span>
-          )}
+          <div className="flex items-center gap-2">
+            <Presentation className="h-5 w-5 text-primary" />
+            {isEditing ? (
+              <Input 
+                value={editedPresentation.title} 
+                onChange={(e) => setEditedPresentation({...editedPresentation, title: e.target.value})}
+                className="font-bold"
+              />
+            ) : (
+              <span>{presentation.title}</span>
+            )}
+          </div>
           <div className="text-sm text-gray-500">
             {currentSlideIndex + 1} / {presentation.slides.length}
           </div>
@@ -160,7 +163,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({
               </>
             )}
             
-            {currentSlide.imageUrl && currentSlideIndex === 0 && (
+            {currentSlide.imageUrl && (
               <div className="mt-6 flex justify-center">
                 <Button variant="outline" size="sm" className="flex items-center gap-1 opacity-70">
                   <Image className="h-3.5 w-3.5" />
