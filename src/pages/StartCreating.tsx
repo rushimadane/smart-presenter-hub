@@ -1,11 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wand2, ArrowRight, LayoutGrid, Sparkles, Key, Eye, EyeOff } from 'lucide-react';
+import { Wand2, ArrowRight, Key, Eye, EyeOff, Sparkles } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -14,6 +14,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { generatePresentation, PresentationRequest } from '@/services/presentationService';
+import { usePresentations } from '@/contexts/PresentationContext';
+import PresentationView from '@/components/PresentationView';
 
 const apiKeySchema = z.object({
   apiKey: z.string().min(1, 'API Key is required')
@@ -31,6 +34,8 @@ const StartCreating = () => {
   const [showApiKey, setShowApiKey] = useState<boolean>(false);
   const [sheetOpen, setSheetOpen] = useState<boolean>(false);
 
+  const { currentPresentation, addPresentation } = usePresentations();
+  
   const apiKeyForm = useForm<ApiKeyFormValues>({
     resolver: zodResolver(apiKeySchema),
     defaultValues: {
@@ -49,14 +54,14 @@ const StartCreating = () => {
   };
 
   // Check for saved API key on component mount
-  React.useEffect(() => {
+  useEffect(() => {
     const savedApiKey = localStorage.getItem('presentation_ai_key');
     if (savedApiKey) {
       setApiKey(savedApiKey);
     }
   }, []);
 
-  const handleStartCreating = () => {
+  const handleStartCreating = async () => {
     if (!presentationTitle.trim()) {
       toast({
         title: "Title required",
@@ -96,42 +101,38 @@ const StartCreating = () => {
 
     setIsGenerating(true);
     
-    // Simulate AI processing with the API key
-    setTimeout(() => {
-      console.log(`Using API key: ${apiKey.substring(0, 4)}...${apiKey.substring(apiKey.length - 4)} to generate presentation`);
+    try {
+      const request: PresentationRequest = {
+        title: presentationTitle,
+        content: presentationContent,
+        apiKey: apiKey
+      };
       
-      // In a real implementation, this would make an API call to generate the presentation
-      // fetch('https://api.presentationai.example/generate', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${apiKey}`,
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     title: presentationTitle,
-      //     content: presentationContent,
-      //   }),
-      // }).then(response => response.json())
-      //   .then(data => {
-      //     setIsGenerating(false);
-      //     setStep(2);
-      //   })
-      //   .catch(error => {
-      //     setIsGenerating(false);
-      //     toast({
-      //       title: "Error generating presentation",
-      //       description: error.message,
-      //       variant: "destructive",
-      //     });
-      //   });
+      const generatedPresentation = await generatePresentation(request);
+      addPresentation(generatedPresentation);
       
-      setIsGenerating(false);
       setStep(2);
       toast({
         title: "Presentation created!",
         description: "Your AI-powered presentation has been generated successfully",
       });
-    }, 3000);
+    } catch (error) {
+      console.error("Error generating presentation:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate presentation. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleCreateNew = () => {
+    setPresentationTitle('');
+    setPresentationContent('');
+    setAgreeToTerms(false);
+    setStep(1);
   };
 
   return (
@@ -278,48 +279,12 @@ const StartCreating = () => {
               </CardFooter>
             </Card>
           ) : (
-            <Card className="shadow-lg border-gray-200">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  Your Presentation is Ready!
-                </CardTitle>
-                <CardDescription>
-                  Your AI-generated presentation has been created successfully.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                  <div className="text-center p-6">
-                    <LayoutGrid className="h-16 w-16 mx-auto text-primary mb-4" />
-                    <h3 className="text-2xl font-bold mb-2">{presentationTitle}</h3>
-                    <p className="text-gray-500">Preview your AI-generated presentation</p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-3 gap-4">
-                  {[1, 2, 3].map((slide) => (
-                    <div 
-                      key={slide} 
-                      className="aspect-video bg-gray-50 rounded border border-gray-200 p-2 flex items-center justify-center"
-                    >
-                      <span className="text-sm text-gray-400">Slide {slide}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-              <CardFooter className="flex gap-4">
-                <Button className="flex-1">Edit Presentation</Button>
-                <Button className="flex-1" variant="outline">Download</Button>
-                <Button 
-                  className="flex-1"
-                  onClick={() => setStep(1)}
-                  variant="outline" 
-                >
-                  Create New
-                </Button>
-              </CardFooter>
-            </Card>
+            currentPresentation && (
+              <PresentationView 
+                presentation={currentPresentation}
+                onCreateNew={handleCreateNew}
+              />
+            )
           )}
           
           <div className="mt-12 text-center">
