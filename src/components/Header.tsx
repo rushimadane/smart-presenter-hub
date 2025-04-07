@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
@@ -39,9 +38,12 @@ const Header = () => {
           </nav>
           
           <div className="hidden md:flex items-center space-x-4">
-            <a href="#" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">
+            <Link to="/login" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">
               Log in
-            </a>
+            </Link>
+            <Link to="/register" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">
+              Register
+            </Link>
             <Button className="bg-primary hover:bg-primary/90" asChild>
               <Link to="/start-creating">Get Started</Link>
             </Button>
@@ -103,12 +105,20 @@ const Header = () => {
               FAQ
             </a>
             <div className="pt-4 pb-3 border-t border-gray-200">
-              <a
-                href="#"
+              <Link
+                to="/login"
                 className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50"
+                onClick={() => setIsMenuOpen(false)}
               >
                 Log in
-              </a>
+              </Link>
+              <Link
+                to="/register"
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Register
+              </Link>
               <Link
                 to="/start-creating"
                 className="block px-3 py-2 mt-2 rounded-md text-base font-medium text-white bg-primary hover:bg-primary/90 text-center"

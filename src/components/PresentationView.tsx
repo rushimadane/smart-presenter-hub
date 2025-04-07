@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Download, Edit, Plus, Image, Save, Presentation } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Edit, Plus, Image, Save, Presentation as PresentationIcon } from 'lucide-react';
 import { Presentation, SlideContent } from '@/services/presentationService';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -38,8 +37,6 @@ const PresentationView: React.FC<PresentationViewProps> = ({
   };
 
   const handleDownload = () => {
-    // In a real app, this would generate a downloadable file
-    // For now, we'll just create a JSON representation
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(isEditing ? editedPresentation : presentation));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
@@ -51,7 +48,6 @@ const PresentationView: React.FC<PresentationViewProps> = ({
 
   const handleEditToggle = () => {
     if (isEditing) {
-      // Save changes
       if (onSave) {
         onSave(editedPresentation);
         toast({
@@ -60,7 +56,6 @@ const PresentationView: React.FC<PresentationViewProps> = ({
         });
       }
     } else {
-      // Start editing
       setEditedPresentation({...presentation});
     }
     setIsEditing(!isEditing);
@@ -79,7 +74,6 @@ const PresentationView: React.FC<PresentationViewProps> = ({
     });
   };
 
-  // Create inline style based on slide styling
   const getSlideStyles = () => {
     const style = currentSlide.style || {};
     
@@ -106,7 +100,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Presentation className="h-5 w-5 text-primary" />
+            <PresentationIcon className="h-5 w-5 text-primary" />
             {isEditing ? (
               <Input 
                 value={editedPresentation.title} 
