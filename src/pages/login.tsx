@@ -1,42 +1,96 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { loginUser } from "@/services/auth";
+import { useNavigate } from "react-router-dom";
+import { sendPasswordResetEmail } from "firebase/auth";
 
 const Login = () => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        console.log('Login attempted with:', { username, password });
-    };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await loginUser(email, password);
+      alert("Logged in!");
+      navigate("/dashboard"); // redirect to a protected route
+    } catch (err: any) {
+      alert("Login failed: " + err);
+    }
+  };
 
-    return (
-        <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
-            <h2 className="text-2xl font-bold mb-4">Login</h2>
-            <form onSubmit={handleSubmit}>
-                <div className="mb-4">
-                    <label className="block text-gray-700">Username:</label>
-                    <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        className="w-full p-2 border rounded"
-                    />
-                </div>
-                <div className="mb-4">
-                    <label className="block text-gray-700">Password:</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full p-2 border rounded"
-                    />
-                </div>
-                <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
-                    Login
-                </button>
-            </form>
+  return (
+    <section className="relative min-h-screen flex items-center justify-center px-4 bg-background overflow-hidden">
+      {/* 🌄 BACKGROUND IMAGE */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="/bg-pattern.jpg"
+          alt="background"
+          className="w-full h-full object-cover opacity-30"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-purple-100/30 to-blue-100/30 mix-blend-lighten" />
+      </div>
+
+      {/* 🫧 FLOATING BLOBS */}
+      <div className="absolute -top-24 -left-20 w-96 h-96 bg-purple-300 rounded-full blur-3xl opacity-60 animate-float" />
+      <div className="absolute -bottom-32 -right-28 w-96 h-96 bg-blue-300 rounded-full blur-3xl opacity-60 animate-float delay-200" />
+
+      {/* 🔐 LOGIN CARD */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="relative z-10 w-full max-w-md bg-white/80 backdrop-blur-md rounded-2xl shadow-2xl p-8 md:p-10"
+      >
+        <h2 className="text-4xl font-bold text-center mb-2 leading-tight text-gray-900">
+          Welcome Back <span className="inline-block animate-wiggle">👋</span>
+        </h2>
+        <p className="text-center text-gray-600 text-sm mb-6">
+          Login to access your smart presenter workspace
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label htmlFor="email" className="text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div>
+            <label htmlFor="password" className="text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <Button type="submit" className="w-full text-lg bg-primary hover:bg-primary/90">
+            Sign In
+          </Button>
+        </form>
+
+        <div className="text-sm text-center text-gray-600 mt-6">
+          Don’t have an account?{" "}
+          <a href="/register" className="text-blue-600 hover:underline">
+            Sign up
+          </a>
         </div>
-    );
+      </motion.div>
+    </section>
+  );
 };
 
 export default Login;

@@ -20,14 +20,16 @@ const App = () => (
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
-                    <Routes>
-                        <Route path="/" element={<Index />} />
-                        <Route path="/start-creating" element={<StartCreating />} />
-                        <Route path="/templates" element={<Templates />} />
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/register" element={<Register />} /> {/* Used here */}
-                        <Route path="*" element={<NotFound />} />
-                    </Routes>
+                <Routes>
+  <Route path="/" element={<Index />} />
+  <Route path="/dashboard" element={<Index />} /> {/* ✅ Same component */}
+  <Route path="/start-creating" element={<StartCreating />} />
+  <Route path="/templates" element={<Templates />} />
+  <Route path="/login" element={<Login />} />
+  <Route path="/register" element={<Register />} />
+  <Route path="*" element={<NotFound />} />
+</Routes>
+
                 </BrowserRouter>
             </TooltipProvider>
         </PresentationProvider>
