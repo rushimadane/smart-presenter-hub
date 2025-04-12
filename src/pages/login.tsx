@@ -5,24 +5,36 @@ import { Button } from "@/components/ui/button";
 import { loginUser } from "@/services/auth";
 import { useNavigate } from "react-router-dom";
 import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "@/lib/firebase"; // ✅ Importing Firebase auth
+import { auth } from "@/lib/firebase";
 import { toast } from "sonner";
-import { useAuth } from "@/AuthContext"; 
+import { useAuth } from "@/AuthContext";
 
-const { login } = useAuth(); // <-- Add this
+// Define the Login component
+const Login: React.FC = () => {
+  // State for email and password
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  try {
-    await loginUser(email, password); // Auth with Firebase
-    login(); // <-- Set global login state
-    toast.success("Logged in!");
-    navigate("/dashboard");
-  } catch (err: any) {
-    toast.error("Login failed: " + err.message);
-  }
-};
+  // Navigation hook
+  const navigate = useNavigate();
 
+  // Auth context
+  const { login } = useAuth();
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      await loginUser(email, password); // Auth with Firebase
+      login(); // Set global login state
+      toast.success("Logged in!");
+      navigate("/dashboard");
+    } catch (err: any) {
+      toast.error("Login failed: " + err.message);
+    }
+  };
+
+  // Handle forgot password
   const handleForgotPassword = async () => {
     if (!email) {
       toast.error("Please enter your email first.");
@@ -76,11 +88,16 @@ const handleSubmit = async (e: React.FormEvent) => {
               type="email"
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setEmail(e.target.value)
+              }
             />
           </div>
           <div>
-            <label htmlFor="password" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="password"
+              className="text-sm font-medium text-gray-700"
+            >
               Password
             </label>
             <Input
@@ -88,10 +105,15 @@ const handleSubmit = async (e: React.FormEvent) => {
               type="password"
               placeholder="••••••••"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setPassword(e.target.value)
+              }
             />
           </div>
-          <Button type="submit" className="w-full text-lg bg-primary hover:bg-primary/90">
+          <Button
+            type="submit"
+            className="w-full text-lg bg-primary hover:bg-primary/90"
+          >
             Sign In
           </Button>
         </form>
@@ -99,6 +121,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         {/* Forgot Password */}
         <div className="text-sm text-center mt-4">
           <button
+            type="button"
             onClick={handleForgotPassword}
             className="text-blue-600 hover:underline"
           >
