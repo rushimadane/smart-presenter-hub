@@ -7,22 +7,21 @@ import { useNavigate } from "react-router-dom";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/lib/firebase"; // ✅ Importing Firebase auth
 import { toast } from "sonner";
+import { useAuth } from "@/AuthContext"; 
 
-const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const navigate = useNavigate();
+const { login } = useAuth(); // <-- Add this
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await loginUser(email, password);
-      alert("Logged in!");
-      navigate("/dashboard"); // redirect to a protected route
-    } catch (err: any) {
-      alert("Login failed: " + err);
-    }
-  };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  try {
+    await loginUser(email, password); // Auth with Firebase
+    login(); // <-- Set global login state
+    toast.success("Logged in!");
+    navigate("/dashboard");
+  } catch (err: any) {
+    toast.error("Login failed: " + err.message);
+  }
+};
 
   const handleForgotPassword = async () => {
     if (!email) {
