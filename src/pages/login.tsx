@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { loginUser } from "@/services/auth";
 import { useNavigate } from "react-router-dom";
 import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "@/lib/firebase"; // ✅ Importing Firebase auth
+import { toast } from "sonner";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -19,6 +21,19 @@ const Login = () => {
       navigate("/dashboard"); // redirect to a protected route
     } catch (err: any) {
       alert("Login failed: " + err);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error("Please enter your email first.");
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast.success("Password reset email sent!");
+    } catch (error: any) {
+      toast.error("Error: " + error.message);
     }
   };
 
@@ -81,6 +96,16 @@ const Login = () => {
             Sign In
           </Button>
         </form>
+
+        {/* Forgot Password */}
+        <div className="text-sm text-center mt-4">
+          <button
+            onClick={handleForgotPassword}
+            className="text-blue-600 hover:underline"
+          >
+            Forgot Password?
+          </button>
+        </div>
 
         <div className="text-sm text-center text-gray-600 mt-6">
           Don’t have an account?{" "}
