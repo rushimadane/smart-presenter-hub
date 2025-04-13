@@ -27,12 +27,12 @@ export interface Presentation {
   slides: SlideContent[];
 }
 
-const API_BASE_URL = "http://localhost:5000/api/presentation"; // Replace with your backend URL
+const API_BASE_URL = "http://localhost:5000"; // Replace with your backend URL
 
 // Generate presentation using backend
 export const generatePresentation = async (request: PresentationRequest): Promise<Presentation> => {
   try {
-    const res = await fetch(API_BASE_URL, {
+  const res = await fetch(`${API_BASE_URL}/generate`,{
       method: "POST",
       headers: {
         "Content-Type": "application/json",
