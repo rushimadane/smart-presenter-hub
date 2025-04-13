@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -108,12 +107,13 @@ const StartCreating = () => {
         title: presentationTitle,
         content: presentationContent,
         apiKey: apiKey,
-        slideBySlide: contentType === 'outline'
+        slideBySlide: contentType === 'outline',
       };
-      
+
+      // Call the backend to generate the presentation
       const generatedPresentation = await generatePresentation(request);
       addPresentation(generatedPresentation);
-      
+
       setStep(2);
       toast({
         title: "Presentation created!",
@@ -318,66 +318,18 @@ Slide 2: Main Topic
                   onClick={handleStartCreating}
                   disabled={isGenerating}
                 >
-                  {isGenerating ? (
-                    <>
-                      <Sparkles className="mr-2 h-5 w-5 animate-pulse" />
-                      Creating your AI presentation...
-                    </>
-                  ) : (
-                    <>
-                      Generate Presentation
-                      <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                    </>
-                  )}
+                  {isGenerating ? "Generating..." : "Start Creating"}
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-all" />
                 </Button>
               </CardFooter>
             </Card>
           ) : (
-            currentPresentation && (
-              <PresentationView 
-                presentation={currentPresentation}
-                onCreateNew={handleCreateNew}
-                onSave={handleSavePresentation}
-              />
-            )
+            <PresentationView 
+              presentation={currentPresentation} 
+              onSave={handleSavePresentation} 
+              onCreateNew={handleCreateNew}
+            />
           )}
-          
-          <div className="mt-12 text-center">
-            <h2 className="text-2xl font-bold mb-4">How Our AI Builds Your Presentation</h2>
-            <p className="text-gray-600 mb-8">
-              We analyze your topic information, extract key concepts, add relevant images, 
-              and create visually appealing slides with perfect formatting.
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Smart Analysis</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>Our AI analyzes your content to identify key points and concepts, creating a logical presentation structure.</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Visual Enhancement</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>Automatically adds relevant images and visual elements to make your presentation more engaging.</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Professional Design</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>Applies professional design principles and formatting to create a polished, cohesive presentation.</p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
         </div>
       </main>
       <Footer />
