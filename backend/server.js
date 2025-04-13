@@ -19,7 +19,8 @@ app.get('/', (req, res) => {
 
 // 🧠 OLD route (you can remove this if unused)
 app.post('/generate', async (req, res) => {
-  const { prompt } = req.body;
+const { content } = req.body;
+  const prompt = content;
 
   try {
     const result = await model.generateContent(prompt);
